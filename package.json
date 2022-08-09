@@ -1,0 +1,25 @@
+{
+  "name": "mini_vue",
+  "version": "1.0.0",
+  "description": "更加注重模块的划分，在Vue2中无法单独使用部分模块，使用时需要完整引入Vuejs（例如只想使用响应式模块，但是需要引入完整的Vuejs），Vue3中核心模块都是独立的。",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node scripts/dev.js reactivity -f global"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dduohereshui/mini_vue.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dduohereshui/mini_vue/issues"
+  },
+  "homepage": "https://github.com/dduohereshui/mini_vue#readme",
+  "devDependencies": {
+    "esbuild": "^0.14.54",
+    "minimist": "^1.2.6",
+    "typescript": "^4.7.4"
+  }
+}

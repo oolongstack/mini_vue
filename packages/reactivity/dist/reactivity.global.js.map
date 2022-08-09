@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/index.ts", "../src/reactive.ts", "../src/effect.ts"],
+  "sourcesContent": ["import { isObject } from \"@vue/shared\";\nimport { reactive } from \"./reactive\";\nimport { effect } from \"./effect\";\nexport { reactive, effect };\n", "export function reactive() {}\n", "export function effect() {}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;;;ACAO,WAAS,WAAW;AAAA,EAAC;;;ACArB,WAAS,SAAS;AAAA,EAAC;",
+  "names": []
+}
