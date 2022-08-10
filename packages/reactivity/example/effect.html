@@ -22,7 +22,12 @@
         //   state.gender;
         // });
         app.innerHTML = `name:${state.name},age:${state.age},gender:${state.gender}`;
+        state.age = Math.random();
       });
+
+      setInterval(() => {
+        state.age++;
+      }, 1000);
     </script>
   </body>
 </html>
