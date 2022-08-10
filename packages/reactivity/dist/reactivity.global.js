@@ -31,6 +31,13 @@ var VueReactivity = (() => {
 
   // packages/reactivity/src/effect.ts
   var activeEffect = void 0;
+  function cleanupEffect(effect2) {
+    const { deps } = effect2;
+    for (let i = 0; i < deps.length; i++) {
+      deps[i].delete(effect2);
+    }
+    effect2.deps.length = 0;
+  }
   var ReactiveEffect = class {
     constructor(fn) {
       this.fn = fn;
@@ -44,6 +51,7 @@ var VueReactivity = (() => {
           return this.fn();
         this.parent = activeEffect;
         activeEffect = this;
+        cleanupEffect(this);
         return this.fn();
       } finally {
         activeEffect = this.parent;
@@ -76,16 +84,18 @@ var VueReactivity = (() => {
       activeEffect.deps.push(dep);
     }
   }
-  console.log(targetMap);
   function trigger(target, type, key, newValue, oldValue) {
     const depsMap = targetMap.get(target);
     if (!depsMap)
       return;
-    const effects = depsMap.get(key);
-    effects && effects.forEach((effect2) => {
-      if (effect2.active && activeEffect !== effect2)
-        effect2.run();
-    });
+    let effects = depsMap.get(key);
+    if (effects) {
+      effects = new Set(effects);
+      effects.forEach((effect2) => {
+        if (effect2.active && activeEffect !== effect2)
+          effect2.run();
+      });
+    }
   }
 
   // packages/reactivity/src/baseHandler.ts

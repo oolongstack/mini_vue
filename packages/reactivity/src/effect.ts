@@ -1,6 +1,12 @@
 // 目前活跃的 effect
 export let activeEffect: any = undefined;
-
+function cleanupEffect(effect: ReactiveEffect) {
+  const { deps } = effect;
+  for (let i = 0; i < deps.length; i++) {
+    (<Set<ReactiveEffect>>deps[i]).delete(effect);
+  }
+  effect.deps.length = 0;
+}
 class ReactiveEffect {
   public active = true; // 该effect的状态，是否活跃
   public parent = null;
@@ -12,6 +18,9 @@ class ReactiveEffect {
       if (!this.active) return this.fn();
       this.parent = activeEffect;
       activeEffect = this;
+
+      // 执行之前，将之前收集的effect清空，重新收集effect（分支处理）
+      cleanupEffect(this);
       return this.fn();
     } finally {
       activeEffect = this.parent;
@@ -49,8 +58,6 @@ export function track<T>(target: any, type: T, key: string) {
   }
 }
 
-console.log(targetMap);
-
 export function trigger<T>(
   target: any,
   type: T,
@@ -60,9 +67,12 @@ export function trigger<T>(
 ) {
   const depsMap = targetMap.get(target);
   if (!depsMap) return;
-  const effects = depsMap.get(key) as Set<ReactiveEffect>;
-  effects &&
+  let effects = depsMap.get(key) as Set<ReactiveEffect>;
+
+  if (effects) {
+    effects = new Set(effects);
     effects.forEach((effect) => {
       if (effect.active && activeEffect !== effect) effect.run();
     });
+  }
 }

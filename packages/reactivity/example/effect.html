@@ -12,7 +12,7 @@
 
     <script>
       const { reactive, effect } = VueReactivity;
-      const raw = { name: "cjl", age: 22, gender: "male" };
+      const raw = { name: "cjl", age: 22, gender: "male", flag: true };
 
       const state = reactive(raw);
       effect(() => {
@@ -21,13 +21,18 @@
         // effect(() => {
         //   state.gender;
         // });
-        app.innerHTML = `name:${state.name},age:${state.age},gender:${state.gender}`;
-        state.age = Math.random();
+        // app.innerHTML = `name:${state.name},age:${state.age},gender:${state.gender}`;
+        console.log("render"); // 只应两次，但是三次，没有做分支切换
+        app.innerHTML = state.flag ? state.name : state.age;
       });
 
-      setInterval(() => {
-        state.age++;
+      setTimeout(() => {
+        state.flag = false;
       }, 1000);
+
+      setTimeout(() => {
+        state.name = "cjl2";
+      }, 2000);
     </script>
   </body>
 </html>
