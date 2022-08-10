@@ -1,4 +1,3 @@
-"use strict";
 var VueReactivity = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -25,12 +24,71 @@ var VueReactivity = (() => {
     reactive: () => reactive
   });
 
+  // packages/shared/src/index.ts
+  var isObject = (value) => {
+    return typeof value === "object" && value !== null;
+  };
+
+  // packages/reactivity/src/baseHandler.ts
+  var baseHandler = {
+    get(target, key, receiver) {
+      console.log("get", target, key);
+      if (key === "__v_isReactive" /* IS_REACTIVE */)
+        return true;
+      return Reflect.get(target, key, receiver);
+    },
+    set(target, key, newVal, receiver) {
+      console.log("set", target, key, newVal);
+      const result = Reflect.set(target, key, newVal, receiver);
+      console.log(result);
+      return result;
+    }
+  };
+
   // packages/reactivity/src/reactive.ts
-  function reactive() {
+  var reactiveMap = /* @__PURE__ */ new WeakMap();
+  function reactive(target) {
+    if (!isObject(target))
+      return;
+    if (target["__v_isReactive" /* IS_REACTIVE */]) {
+      return target;
+    }
+    const existProxy = reactiveMap.get(target);
+    if (existProxy) {
+      return existProxy;
+    }
+    const proxy = new Proxy(target, baseHandler);
+    reactiveMap.set(target, proxy);
+    return proxy;
   }
 
   // packages/reactivity/src/effect.ts
-  function effect() {
+  var activeEffect = void 0;
+  var ReactiveEffect = class {
+    constructor(fn) {
+      this.fn = fn;
+      this.active = true;
+      this.parent = null;
+    }
+    run() {
+      try {
+        if (!this.active)
+          return this.fn();
+        this.parent = activeEffect;
+        activeEffect = this;
+        return this.fn();
+      } finally {
+        activeEffect = this.parent;
+        this.parent = null;
+      }
+    }
+    stop() {
+      this.active = false;
+    }
+  };
+  function effect(fn) {
+    const _effect = new ReactiveEffect(fn);
+    _effect.run();
   }
   return __toCommonJS(src_exports);
 })();

@@ -11,8 +11,15 @@
 
     <script>
       const { reactive, effect } = VueReactivity;
+      const obj = { name: "cjl", age: 22, gender: "male" };
 
-      console.log(reactive, effect);
+      const state1 = reactive(obj);
+      const state2 = reactive(obj);
+      console.log(state1 === state2); // true
+
+      const state3 = reactive(obj);
+      const state4 = reactive(state3);
+      console.log(state3 === state4); // true
     </script>
   </body>
 </html>
