@@ -1,4 +1,6 @@
-import { activeEffect, track, trigger } from "./effect";
+import { isObject } from "@vue/shared";
+import { track, trigger } from "./effect";
+import { reactive } from "./reactive";
 export const enum ReactiveFlags {
   IS_REACTIVE = "__v_isReactive",
 }
@@ -8,7 +10,11 @@ export const baseHandler = {
   get(target: any, key: string, receiver: any) {
     if (key === ReactiveFlags.IS_REACTIVE) return true; // 被代理过的对象访问is_reactive枚举属性会走这个逻辑
     track<"get">(target, "get", key);
-    return Reflect.get(target, key, receiver);
+    const result = Reflect.get(target, key, receiver);
+    if (isObject(result)) {
+      return reactive(result); // 深度代理
+    }
+    return result;
   },
   set(target: any, key: string, newValue: any, receiver: any) {
     const oldValue = target[key];
