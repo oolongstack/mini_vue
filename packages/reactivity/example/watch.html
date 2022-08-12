@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../dist/reactivity.global.js"></script>
+
+    <script>
+      const { reactive, effect, computed, watch } = VueReactivity;
+      const obj = {
+        name: "蔡杰鲁",
+        age: 20,
+        friends: {
+          fname: "张三",
+          age: 23,
+        },
+      };
+      const state = reactive(obj);
+
+      watch(
+        () => state.friends.age,
+        (newVal, oldVal) => {
+          console.log(newVal, oldVal);
+        }
+      );
+
+      setTimeout(() => {
+        state.friends.age = 100;
+      }, 2000);
+    </script>
+  </body>
+</html>

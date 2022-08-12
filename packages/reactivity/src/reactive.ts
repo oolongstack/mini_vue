@@ -2,6 +2,10 @@ import { isObject } from "@vue/shared";
 import { baseHandler, ReactiveFlags } from "./baseHandler";
 
 const reactiveMap = new WeakMap<any, ProxyConstructor>();
+
+export function isReactive(value: any): boolean {
+  return !!(value && value[ReactiveFlags.IS_REACTIVE]);
+}
 // 将对象转化为响应式对象
 export function reactive(target: any) {
   if (!isObject(target)) return;
