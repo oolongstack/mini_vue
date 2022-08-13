@@ -12,7 +12,6 @@
   "buildOptions": {
     "name": "VueRuntimeCORE",
     "formats": [
-      "global",
       "cjs",
       "esm-bundler"
     ]
