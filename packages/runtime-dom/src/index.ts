@@ -10,4 +10,5 @@ function render(vnode, aontainer) {
   return createRenderer(renderOptions).render(vnode, aontainer);
 }
 
+export * from "@vue/runtime-core";
 export { render };

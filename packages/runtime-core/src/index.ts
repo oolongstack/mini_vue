@@ -1,3 +1,4 @@
 import { createRenderer } from "./renderer";
-
-export { createRenderer };
+import { h } from "./h";
+import { Text } from "./vnode";
+export { createRenderer, h, Text };
