@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../dist/runtime-dom.global.js"></script>
+    <script>
+      const { render, h, Text } = VueRuntimeDOM;
+      const app = document.getElementById("app");
+      // const vnode = h("div", { style: { color: "red" } }, [
+      //   h("span", "span1"),
+      //   h("span", "span1"),
+      // ]);
+
+      // 文本节点
+      const textNode = h(Text, "黑恶势力");
+      // 元素节点
+      const elementNode = h("h1", { style: { color: "red" } }, ["hhh", "lll"]);
+
+      // diff
+      const arrayNode = h("div", null, [
+        h("span", null, "span1"),
+        h("span", null, "span2"),
+        h("span", null, "span3"),
+        h("span", null, "span4"),
+      ]);
+      render(arrayNode, app);
+
+      setTimeout(() => {
+        // 文本更新节点
+        // render(h(Text, "哈哈哈"), app);
+        // 元素更新节点
+
+        const newNode = h("div", null, [
+          h("span", null, "span11"),
+          h("span", null, "span22"),
+          h("span", null, "span33"),
+          h("span", null, "span44"),
+        ]);
+        render(newNode, app);
+      }, 1000);
+    </script>
+  </body>
+</html>
