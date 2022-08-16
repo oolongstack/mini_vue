@@ -24,23 +24,31 @@
 
       // diff
       const arrayNode = h("div", null, [
-        h("span", null, "span1"),
-        h("span", null, "span2"),
-        h("span", null, "span3"),
-        h("span", null, "span4"),
+        h("div", { key: "a" }, "a"),
+        h("div", { key: "b" }, "b"),
+        h("div", { key: "c" }, "c"),
+        h("div", { key: "z" }, "z"),
+        h("div", { key: "d" }, "d"),
+        h("div", { key: "e" }, "e"),
+        h("div", { key: "f" }, "f"),
+        h("div", { key: "g" }, "g"),
       ]);
+
       render(arrayNode, app);
 
       setTimeout(() => {
         // 文本更新节点
         // render(h(Text, "哈哈哈"), app);
         // 元素更新节点
-
         const newNode = h("div", null, [
-          h("span", null, "span11"),
-          h("span", null, "span22"),
-          h("span", null, "span33"),
-          h("span", null, "span44"),
+          h("div", { key: "a" }, "a"),
+          h("div", { key: "b" }, "b"),
+          h("div", { key: "e" }, "e"),
+          h("div", { key: "c" }, "c"),
+          h("div", { key: "d" }, "d"),
+          h("div", { key: "h" }, "h"),
+          h("div", { key: "f" }, "f"),
+          h("div", { key: "g" }, "g"),
         ]);
         render(newNode, app);
       }, 1000);
