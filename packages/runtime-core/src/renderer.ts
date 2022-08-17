@@ -1,4 +1,6 @@
+import { reactive, ReactiveEffect } from "@vue/reactivity";
 import { isNumber, isString, ShapeFlags } from "@vue/shared";
+import { queueJob } from "./scheduler";
 import { getSequence } from "./sequence";
 import { createVnode, isSameVnode, Text, Fragment } from "./vnode";
 export function createRenderer(renderOptions) {
@@ -234,6 +236,51 @@ export function createRenderer(renderOptions) {
       patchChildren(n1, n2, container);
     }
   };
+  const processComponent = (n1, n2, container, anchor) => {
+    if (n1 == null) {
+      // 挂载n2
+      // console.log(n2);
+      mountComponent(n2, container, anchor);
+    } else {
+      // patch组件
+    }
+  };
+  const mountComponent = (vnode, container, anchor) => {
+    const { type, props, children } = vnode;
+    const { data = () => ({}), render } = type;
+
+    const state = reactive(data()); // 响应式数据
+    // 组件实例
+    const instance = {
+      type,
+      state,
+      vnode,
+      subTree: null, //组件渲染的真正的vnode
+      isMounted: false,
+      update: null,
+    };
+    // console.log(instance);
+
+    const componentUpdate = () => {
+      if (!instance.isMounted) {
+        console.log("挂载");
+        const subTree = render.call(state);
+        patch(null, subTree, container, anchor);
+        instance.subTree = subTree;
+        instance.isMounted = true;
+      } else {
+        console.log("更新");
+        const subTree = render.call(state);
+        patch(instance.subTree, subTree, container, anchor);
+        instance.subTree = subTree;
+      }
+    };
+    const effect = new ReactiveEffect(componentUpdate, () => {
+      queueJob(instance.update);
+    });
+    const update = (instance.update = effect.run.bind(effect));
+    update();
+  };
   // 渲染器核心
   const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) return;
@@ -253,6 +300,9 @@ export function createRenderer(renderOptions) {
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
           processElement(n1, n2, container, anchor);
+        } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+          // console.log(n2);
+          processComponent(n1, n2, container, anchor);
         }
     }
   };
