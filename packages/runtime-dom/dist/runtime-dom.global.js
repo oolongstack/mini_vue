@@ -20,6 +20,7 @@ var VueRuntimeDOM = (() => {
   // packages/runtime-dom/src/index.ts
   var src_exports = {};
   __export(src_exports, {
+    Fragment: () => Fragment,
     Text: () => Text,
     createRenderer: () => createRenderer,
     h: () => h,
@@ -195,6 +196,7 @@ var VueRuntimeDOM = (() => {
 
   // packages/runtime-core/src/vnode.ts
   var Text = Symbol("Text");
+  var Fragment = Symbol("Fragment");
   function isVnode(value) {
     return value ? value.__v_isVNode === true : false;
   }
@@ -247,7 +249,6 @@ var VueRuntimeDOM = (() => {
       for (let i = 0; i < children.length; i++) {
         const child = normalize(children[i]);
         children[i] = child;
-        console.log(child);
         patch(null, child, container);
       }
     };
@@ -294,7 +295,6 @@ var VueRuntimeDOM = (() => {
     };
     const unmountChildren = (children) => {
       for (let i = 0; i < children.length; i++) {
-        console.log("unmountChildren", children[i]);
         unmount(children[i]);
       }
     };
@@ -376,7 +376,6 @@ var VueRuntimeDOM = (() => {
         const childVnode = c2[i2];
         keyToNewIndexMap.set(childVnode.key, i2);
       }
-      console.log(keyToNewIndexMap);
       const toBePatched = e2 - s2 + 1;
       const newIndexToOldIndexMap = new Array(toBePatched).fill(0);
       for (let i2 = s1; i2 <= e1; i2++) {
@@ -417,6 +416,13 @@ var VueRuntimeDOM = (() => {
         }
       }
     };
+    const processFragment = (n1, n2, container) => {
+      if (n1 == null) {
+        mountChildren(n2.children, container);
+      } else {
+        patchChildren(n1, n2, container);
+      }
+    };
     const patch = (n1, n2, container, anchor = null) => {
       if (n1 === n2)
         return;
@@ -428,6 +434,9 @@ var VueRuntimeDOM = (() => {
       switch (type) {
         case Text:
           processText(n1, n2, container, anchor);
+          break;
+        case Fragment:
+          processFragment(n1, n2, container);
           break;
         default:
           if (shapeFlag & 1 /* ELEMENT */) {

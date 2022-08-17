@@ -1,6 +1,6 @@
 import { isNumber, isString, ShapeFlags } from "@vue/shared";
 import { getSequence } from "./sequence";
-import { createVnode, isSameVnode, Text } from "./vnode";
+import { createVnode, isSameVnode, Text, Fragment } from "./vnode";
 export function createRenderer(renderOptions) {
   const {
     insert: hostInsert,
@@ -22,8 +22,6 @@ export function createRenderer(renderOptions) {
     for (let i = 0; i < children.length; i++) {
       const child = normalize(children[i]);
       children[i] = child; // 字符串替换为vnode
-      console.log(child);
-
       patch(null, child, container);
     }
   };
@@ -79,7 +77,6 @@ export function createRenderer(renderOptions) {
   };
   const unmountChildren = (children) => {
     for (let i = 0; i < children.length; i++) {
-      console.log("unmountChildren", children[i]);
       unmount(children[i]);
     }
   };
@@ -174,7 +171,6 @@ export function createRenderer(renderOptions) {
         }
       }
     }
-
     // 乱序比对
     let s1 = i;
     let s2 = i;
@@ -185,7 +181,6 @@ export function createRenderer(renderOptions) {
       keyToNewIndexMap.set(childVnode.key, i);
     }
 
-    console.log(keyToNewIndexMap);
     const toBePatched = e2 - s2 + 1;
     const newIndexToOldIndexMap = new Array(toBePatched).fill(0);
     // 区老列表里去找key相同的进行patch，找不到的就删除
@@ -232,6 +227,13 @@ export function createRenderer(renderOptions) {
       }
     }
   };
+  const processFragment = (n1, n2, container) => {
+    if (n1 == null) {
+      mountChildren(n2.children, container);
+    } else {
+      patchChildren(n1, n2, container);
+    }
+  };
   // 渲染器核心
   const patch = (n1, n2, container, anchor = null) => {
     if (n1 === n2) return;
@@ -244,6 +246,9 @@ export function createRenderer(renderOptions) {
     switch (type) {
       case Text:
         processText(n1, n2, container, anchor);
+        break;
+      case Fragment:
+        processFragment(n1, n2, container);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
