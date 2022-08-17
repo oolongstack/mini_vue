@@ -150,6 +150,49 @@ var VueRuntimeDOM = (() => {
   var isString = (value) => typeof value === "string";
   var isNumber = (value) => typeof value === "number";
 
+  // packages/runtime-core/src/sequence.ts
+  function getSequence(arr) {
+    const len = arr.length;
+    const p = arr.slice();
+    const result = [0];
+    let resultLastIndex;
+    let start;
+    let end;
+    let middle;
+    for (let i2 = 0; i2 < len; i2++) {
+      let arrI = arr[i2];
+      if (arrI !== 0) {
+        resultLastIndex = result[result.length - 1];
+        if (arr[resultLastIndex] < arrI) {
+          result.push(i2);
+          p[i2] = resultLastIndex;
+          continue;
+        }
+        start = 0;
+        end = result.length - 1;
+        while (start < end) {
+          middle = Math.floor((start + end) / 2);
+          if (arr[result[middle]] < arrI) {
+            start = middle + 1;
+          } else {
+            end = middle;
+          }
+        }
+        if (arr[result[end]] > arrI) {
+          result[end] = i2;
+          p[i2] = result[end - 1];
+        }
+      }
+    }
+    let i = result.length;
+    let last = result[i - 1];
+    while (i-- > 0) {
+      result[i] = last;
+      last = p[last];
+    }
+    return result;
+  }
+
   // packages/runtime-core/src/vnode.ts
   var Text = Symbol("Text");
   function isVnode(value) {
@@ -326,7 +369,6 @@ var VueRuntimeDOM = (() => {
           }
         }
       }
-      console.log(i, e1, e2);
       let s1 = i;
       let s2 = i;
       const keyToNewIndexMap = /* @__PURE__ */ new Map();
@@ -347,6 +389,8 @@ var VueRuntimeDOM = (() => {
           patch(oldChild, c2[newIndex], el);
         }
       }
+      const sequence = getSequence(newIndexToOldIndexMap);
+      let j = sequence.length - 1;
       for (let i2 = toBePatched - 1; i2 >= 0; i2--) {
         const index = i2 + s2;
         const current = c2[index];
@@ -354,7 +398,11 @@ var VueRuntimeDOM = (() => {
         if (newIndexToOldIndexMap[i2] === 0) {
           patch(null, current, el, anchor);
         } else {
-          hostInsert(current.el, el, anchor);
+          if (i2 !== sequence[j]) {
+            hostInsert(current.el, el, anchor);
+          } else {
+            j--;
+          }
         }
       }
     };

@@ -1,4 +1,5 @@
 import { isNumber, isString, ShapeFlags } from "@vue/shared";
+import { getSequence } from "./sequence";
 import { createVnode, isSameVnode, Text } from "./vnode";
 export function createRenderer(renderOptions) {
   const {
@@ -175,7 +176,6 @@ export function createRenderer(renderOptions) {
     }
 
     // 乱序比对
-    console.log(i, e1, e2);
     let s1 = i;
     let s2 = i;
     // 新的乱序序列的key对应的索引
@@ -200,6 +200,8 @@ export function createRenderer(renderOptions) {
       }
     }
 
+    const sequence = getSequence(newIndexToOldIndexMap);
+    let j = sequence.length - 1;
     // patch完之后倒序插入
     for (let i = toBePatched - 1; i >= 0; i--) {
       const index = i + s2;
@@ -211,7 +213,11 @@ export function createRenderer(renderOptions) {
         patch(null, current, el, anchor);
       } else {
         // 需要移动
-        hostInsert(current.el, el, anchor);
+        if (i !== sequence[j]) {
+          hostInsert(current.el, el, anchor);
+        } else {
+          j--;
+        }
       }
     }
   };
@@ -234,7 +240,6 @@ export function createRenderer(renderOptions) {
       unmount(n1);
       n1 = null;
     }
-
     const { type, shapeFlag } = n2;
     switch (type) {
       case Text:
