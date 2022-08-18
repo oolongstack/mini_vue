@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../dist/runtime-dom.global.js"></script>
+    <script>
+      const { render, h } = VueRuntimeDOM;
+      const app = document.getElementById("app");
+      const VueComponent = {
+        props: {
+          address: String,
+        },
+        data() {
+          return {
+            name: "cjl",
+            age: 22,
+          };
+        },
+        render() {
+          setTimeout(() => {
+            this.age = 30;
+          }, 1000);
+          return h("div", {}, `${this.age},${this.address},${this.$attrs.b}`);
+        },
+      };
+      // props attrs 用户使用props接收的叫做props
+      render(h(VueComponent, { address: "杭州", a: 1, b: 2 }), app);
+    </script>
+  </body>
+</html>

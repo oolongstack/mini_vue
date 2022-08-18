@@ -9,14 +9,14 @@ export function queueJob(job) {
   if (!isFlushing) {
     isFlushing = true;
     resolvePromise.then(() => {
+      isFlushing = false;
       const copy = queue.slice();
+      queue.length = 0;
       for (let i = 0; i < copy.length; i++) {
         const job = copy[i];
         job();
       }
-      queue.length = 0;
       copy.length = 0;
-      isFlushing = false;
     });
   }
 }

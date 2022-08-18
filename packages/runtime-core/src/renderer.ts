@@ -1,5 +1,6 @@
 import { reactive, ReactiveEffect } from "@vue/reactivity";
 import { isNumber, isString, ShapeFlags } from "@vue/shared";
+import { createComponentInstance, setupComponent } from "./component";
 import { queueJob } from "./scheduler";
 import { getSequence } from "./sequence";
 import { createVnode, isSameVnode, Text, Fragment } from "./vnode";
@@ -246,31 +247,25 @@ export function createRenderer(renderOptions) {
     }
   };
   const mountComponent = (vnode, container, anchor) => {
-    const { type, props, children } = vnode;
-    const { data = () => ({}), render } = type;
+    const instance = (vnode.component = createComponentInstance(vnode));
+    setupComponent(instance);
 
-    const state = reactive(data()); // 响应式数据
-    // 组件实例
-    const instance = {
-      type,
-      state,
-      vnode,
-      subTree: null, //组件渲染的真正的vnode
-      isMounted: false,
-      update: null,
-    };
-    // console.log(instance);
+    console.log(instance);
 
+    setupRenderEffect(instance, container, anchor);
+  };
+  const setupRenderEffect = (instance, container, anchor) => {
+    const { render } = instance;
     const componentUpdate = () => {
       if (!instance.isMounted) {
         console.log("挂载");
-        const subTree = render.call(state);
+        const subTree = render.call(instance.proxy);
         patch(null, subTree, container, anchor);
         instance.subTree = subTree;
         instance.isMounted = true;
       } else {
         console.log("更新");
-        const subTree = render.call(state);
+        const subTree = render.call(instance.proxy);
         patch(instance.subTree, subTree, container, anchor);
         instance.subTree = subTree;
       }
