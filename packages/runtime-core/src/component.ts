@@ -5,7 +5,7 @@ import { initProps } from "./componentProps";
 export function createComponentInstance(vnode) {
   // 组件实例
   const instance = {
-    data: null, // 响应式数据
+    data: {}, // 响应式数据
     vnode,
     subTree: null, //组件渲染的真正的vnode
     isMounted: false,
@@ -56,9 +56,7 @@ const publicInstanceProxy = {
 export function setupComponent(instance) {
   const { type, props } = instance.vnode;
   initProps(instance, props);
-
   instance.proxy = new Proxy(instance, publicInstanceProxy);
-
   // 用户写的data
   const { data, render } = type;
   if (data) {

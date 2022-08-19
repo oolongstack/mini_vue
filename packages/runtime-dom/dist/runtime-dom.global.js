@@ -292,11 +292,34 @@ var VueRuntimeDOM = (() => {
     instance.props = reactive(props);
     instance.attrs = attrs;
   }
+  function hasPropsChanged(prevProps, nextProps) {
+    const nextKeys = Object.keys(nextProps);
+    if (Object.keys(prevProps).length !== nextKeys.length) {
+      return true;
+    }
+    for (let i = 0; i < nextKeys.length; i++) {
+      const key = nextKeys[i];
+      if (nextProps[key] !== prevProps[key]) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function updateProps(prevProps, nextProps) {
+    for (const key in nextProps) {
+      prevProps[key] = nextProps[key];
+    }
+    for (const key in prevProps) {
+      if (!hasOwn(nextProps, key)) {
+        delete prevProps[key];
+      }
+    }
+  }
 
   // packages/runtime-core/src/component.ts
   function createComponentInstance(vnode) {
     const instance = {
-      data: null,
+      data: {},
       vnode,
       subTree: null,
       isMounted: false,
@@ -649,29 +672,51 @@ var VueRuntimeDOM = (() => {
         patchChildren(n1, n2, container);
       }
     };
+    const shouldUpdateComponent = (n1, n2) => {
+      const { props: prevProps, children: prevChildren } = n1;
+      const { props: nextProps, children: nextChildren } = n2;
+      if (prevProps === nextProps)
+        return false;
+      if (prevChildren || nextChildren) {
+        return true;
+      }
+      if (hasPropsChanged(prevProps, nextProps)) {
+        return true;
+      }
+      return false;
+    };
+    const updateComponent = (n1, n2) => {
+      const instance = n2.component = n1.component;
+      if (shouldUpdateComponent(n1, n2)) {
+        instance.next = n2;
+        instance.update();
+      }
+    };
     const processComponent = (n1, n2, container, anchor) => {
       if (n1 == null) {
         mountComponent(n2, container, anchor);
       } else {
+        updateComponent(n1, n2);
       }
     };
     const mountComponent = (vnode, container, anchor) => {
       const instance = vnode.component = createComponentInstance(vnode);
       setupComponent(instance);
-      console.log(instance);
       setupRenderEffect(instance, container, anchor);
     };
     const setupRenderEffect = (instance, container, anchor) => {
       const { render: render3 } = instance;
       const componentUpdate = () => {
         if (!instance.isMounted) {
-          console.log("\u6302\u8F7D");
           const subTree = render3.call(instance.proxy);
           patch(null, subTree, container, anchor);
           instance.subTree = subTree;
           instance.isMounted = true;
         } else {
-          console.log("\u66F4\u65B0");
+          const { next } = instance;
+          if (next) {
+            updateComponentPreRender(instance, next);
+          }
           const subTree = render3.call(instance.proxy);
           patch(instance.subTree, subTree, container, anchor);
           instance.subTree = subTree;
@@ -682,6 +727,11 @@ var VueRuntimeDOM = (() => {
       });
       const update = instance.update = effect2.run.bind(effect2);
       update();
+    };
+    const updateComponentPreRender = (instance, next) => {
+      instance.next = null;
+      instance.vnode = next;
+      updateProps(instance.props, next.props);
     };
     const patch = (n1, n2, container, anchor = null) => {
       if (n1 === n2)

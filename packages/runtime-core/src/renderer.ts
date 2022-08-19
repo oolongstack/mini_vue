@@ -1,6 +1,7 @@
 import { reactive, ReactiveEffect } from "@vue/reactivity";
 import { isNumber, isString, ShapeFlags } from "@vue/shared";
 import { createComponentInstance, setupComponent } from "./component";
+import { hasPropsChanged, updateProps } from "./componentProps";
 import { queueJob } from "./scheduler";
 import { getSequence } from "./sequence";
 import { createVnode, isSameVnode, Text, Fragment } from "./vnode";
@@ -237,20 +238,40 @@ export function createRenderer(renderOptions) {
       patchChildren(n1, n2, container);
     }
   };
+  const shouldUpdateComponent = (n1, n2) => {
+    const { props: prevProps, children: prevChildren } = n1;
+    const { props: nextProps, children: nextChildren } = n2;
+    if (prevProps === nextProps) return false;
+    if (prevChildren || nextChildren) {
+      return true;
+    }
+    if (hasPropsChanged(prevProps, nextProps)) {
+      return true;
+    }
+    return false;
+  };
+  const updateComponent = (n1, n2) => {
+    const instance = (n2.component = n1.component);
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      // 更新前的准备（更新props，slots等）
+      // 更新组件
+      instance.update();
+    }
+  };
   const processComponent = (n1, n2, container, anchor) => {
     if (n1 == null) {
       // 挂载n2
       // console.log(n2);
       mountComponent(n2, container, anchor);
     } else {
-      // patch组件
+      // patch组件  (传入的props改变等)
+      updateComponent(n1, n2);
     }
   };
   const mountComponent = (vnode, container, anchor) => {
     const instance = (vnode.component = createComponentInstance(vnode));
     setupComponent(instance);
-
-    console.log(instance);
 
     setupRenderEffect(instance, container, anchor);
   };
@@ -258,13 +279,15 @@ export function createRenderer(renderOptions) {
     const { render } = instance;
     const componentUpdate = () => {
       if (!instance.isMounted) {
-        console.log("挂载");
         const subTree = render.call(instance.proxy);
         patch(null, subTree, container, anchor);
         instance.subTree = subTree;
         instance.isMounted = true;
       } else {
-        console.log("更新");
+        const { next } = instance;
+        if (next) {
+          updateComponentPreRender(instance, next);
+        }
         const subTree = render.call(instance.proxy);
         patch(instance.subTree, subTree, container, anchor);
         instance.subTree = subTree;
@@ -276,8 +299,14 @@ export function createRenderer(renderOptions) {
     const update = (instance.update = effect.run.bind(effect));
     update();
   };
+  const updateComponentPreRender = (instance, next) => {
+    instance.next = null;
+    instance.vnode = next;
+    updateProps(instance.props, next.props);
+  };
   // 渲染器核心
   const patch = (n1, n2, container, anchor = null) => {
+    // debugger;
     if (n1 === n2) return;
     // 若不是同样的虚拟节点  (n1必须存在，不然就是挂载)
     if (n1 && !isSameVnode(n1, n2)) {

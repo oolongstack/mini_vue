@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../dist/runtime-dom.global.js"></script>
+    <script>
+      const { render, h, Fragment } = VueRuntimeDOM;
+      const app = document.getElementById("app");
+
+      const MyComponent = {
+        props: {
+          address: String,
+        },
+        render() {
+          return h("div", null, `我住在${this.address}`);
+        },
+      };
+
+      const VueComponent = {
+        data() {
+          return {
+            flag: false,
+          };
+        },
+        render() {
+          return h(Fragment, [
+            h(
+              "button",
+              { onClick: () => (this.flag = !this.flag) },
+              "切换渲染"
+            ),
+            h(MyComponent, { address: this.flag ? "地球" : "月球" }),
+          ]);
+        },
+      };
+
+      // props attrs 用户使用props接收的叫做props
+      render(h(VueComponent), app);
+    </script>
+  </body>
+</html>

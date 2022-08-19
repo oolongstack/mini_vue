@@ -26,3 +26,30 @@ export function initProps(instance, rawProps) {
   instance.props = reactive(props);
   instance.attrs = attrs;
 }
+
+export function hasPropsChanged(prevProps, nextProps) {
+  const nextKeys = Object.keys(nextProps);
+  // 先判断前后属性的个数
+  if (Object.keys(prevProps).length !== nextKeys.length) {
+    return true;
+  }
+  // 判断值
+  for (let i = 0; i < nextKeys.length; i++) {
+    const key = nextKeys[i];
+    if (nextProps[key] !== prevProps[key]) {
+      return true;
+    }
+  }
+  return false;
+}
+export function updateProps(prevProps, nextProps) {
+  // 先看props有没有变化
+  for (const key in nextProps) {
+    prevProps[key] = nextProps[key];
+  }
+  for (const key in prevProps) {
+    if (!hasOwn(nextProps, key)) {
+      delete prevProps[key];
+    }
+  }
+}
