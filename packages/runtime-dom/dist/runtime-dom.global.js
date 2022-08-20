@@ -21,16 +21,27 @@ var VueRuntimeDOM = (() => {
   var src_exports = {};
   __export(src_exports, {
     Fragment: () => Fragment,
+    LifecycleHooks: () => LifecycleHooks,
     ReactiveEffect: () => ReactiveEffect,
     Text: () => Text,
     computed: () => computed,
+    createComponentInstance: () => createComponentInstance,
+    createHook: () => createHook,
     createRenderer: () => createRenderer,
+    currentInstance: () => currentInstance,
     effect: () => effect,
+    getCurrentInstance: () => getCurrentInstance,
     h: () => h,
+    onBeforeMount: () => onBeforeMount,
+    onBeforeUpdate: () => onBeforeUpdate,
+    onMounted: () => onMounted,
+    onUpdated: () => onUpdated,
     proxyRefs: () => proxyRefs,
     reactive: () => reactive,
     ref: () => ref,
     render: () => render,
+    setCurrentInsatnce: () => setCurrentInsatnce,
+    setupComponent: () => setupComponent,
     toRef: () => toRef,
     toRefs: () => toRefs,
     watch: () => watch
@@ -161,6 +172,11 @@ var VueRuntimeDOM = (() => {
   var isString = (value) => typeof value === "string";
   var isNumber = (value) => typeof value === "number";
   var hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+  var invokeArrayFns = (arrayFn) => {
+    for (let i = 0; i < arrayFn.length; i++) {
+      arrayFn[i]();
+    }
+  };
 
   // packages/reactivity/src/effect.ts
   var activeEffect = void 0;
@@ -483,6 +499,13 @@ var VueRuntimeDOM = (() => {
   }
 
   // packages/runtime-core/src/component.ts
+  var currentInstance = null;
+  function getCurrentInstance() {
+    return currentInstance;
+  }
+  function setCurrentInsatnce(instance) {
+    currentInstance = instance;
+  }
   function createComponentInstance(vnode) {
     const instance = {
       data: {},
@@ -562,7 +585,9 @@ var VueRuntimeDOM = (() => {
         attrs: instance.attrs,
         slots: instance.slots
       };
+      setCurrentInsatnce(instance);
       const setupResult = setup(instance.props, setupContext);
+      setCurrentInsatnce(null);
       if (isFunction(setupResult)) {
         instance.render = setupResult;
       } else if (isObject(setupResult)) {
@@ -907,18 +932,31 @@ var VueRuntimeDOM = (() => {
       const { render: render3 } = instance;
       const componentUpdate = () => {
         if (!instance.isMounted) {
+          const { bm, m } = instance;
+          if (bm) {
+            invokeArrayFns(bm);
+          }
           const subTree = render3.call(instance.proxy);
           patch(null, subTree, container, anchor);
           instance.subTree = subTree;
           instance.isMounted = true;
+          if (m) {
+            invokeArrayFns(m);
+          }
         } else {
-          const { next } = instance;
+          const { next, bu, u } = instance;
           if (next) {
             updateComponentPreRender(instance, next);
+          }
+          if (bu) {
+            invokeArrayFns(bu);
           }
           const subTree = render3.call(instance.proxy);
           patch(instance.subTree, subTree, container, anchor);
           instance.subTree = subTree;
+          if (u) {
+            invokeArrayFns(u);
+          }
         }
       };
       const effect2 = new ReactiveEffect(componentUpdate, () => {
@@ -994,6 +1032,34 @@ var VueRuntimeDOM = (() => {
       return createVnode(type, propsOrChildren, children);
     }
   }
+
+  // packages/runtime-core/src/apiLifeycle.ts
+  var LifecycleHooks = /* @__PURE__ */ ((LifecycleHooks2) => {
+    LifecycleHooks2["BEFORE_MOUNT"] = "bm";
+    LifecycleHooks2["MOUNTED"] = "m";
+    LifecycleHooks2["BEFORE_UPDATE"] = "bu";
+    LifecycleHooks2["UPDATED"] = "u";
+    return LifecycleHooks2;
+  })(LifecycleHooks || {});
+  function createHook(type) {
+    return (hook, target = currentInstance) => {
+      if (target) {
+        const hooks = target[type] || (target[type] = []);
+        const wrapedHook = () => {
+          setCurrentInsatnce(target);
+          hook();
+          setCurrentInsatnce(null);
+        };
+        hooks.push(wrapedHook);
+      } else {
+        console.warn("lifecycle can only used in setup");
+      }
+    };
+  }
+  var onBeforeMount = createHook("bm" /* BEFORE_MOUNT */);
+  var onMounted = createHook("m" /* MOUNTED */);
+  var onBeforeUpdate = createHook("bu" /* BEFORE_UPDATE */);
+  var onUpdated = createHook("u" /* UPDATED */);
 
   // packages/runtime-dom/src/index.ts
   var renderOptions = Object.assign(nodeOps, { patchProp });

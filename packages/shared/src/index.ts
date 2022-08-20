@@ -15,6 +15,11 @@ export const isNumber = (value: any) => typeof value === "number";
 export const hasOwn = (value, key) =>
   Object.prototype.hasOwnProperty.call(value, key);
 
+export const invokeArrayFns = (arrayFn: any[]) => {
+  for (let i = 0; i < arrayFn.length; i++) {
+    arrayFn[i]();
+  }
+};
 // vnode 类型标识
 export const enum ShapeFlags {
   ELEMENT = 1,

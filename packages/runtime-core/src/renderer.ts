@@ -1,5 +1,5 @@
 import { reactive, ReactiveEffect } from "@vue/reactivity";
-import { isNumber, isString, ShapeFlags } from "@vue/shared";
+import { invokeArrayFns, isNumber, isString, ShapeFlags } from "@vue/shared";
 import { createComponentInstance, setupComponent } from "./component";
 import { hasPropsChanged, updateProps } from "./componentProps";
 import { queueJob } from "./scheduler";
@@ -279,18 +279,32 @@ export function createRenderer(renderOptions) {
     const { render } = instance;
     const componentUpdate = () => {
       if (!instance.isMounted) {
+        // 执行bm
+        const { bm, m } = instance;
+        if (bm) {
+          invokeArrayFns(bm);
+        }
         const subTree = render.call(instance.proxy);
         patch(null, subTree, container, anchor);
         instance.subTree = subTree;
         instance.isMounted = true;
+        if (m) {
+          invokeArrayFns(m);
+        }
       } else {
-        const { next } = instance;
+        const { next, bu, u } = instance;
         if (next) {
           updateComponentPreRender(instance, next);
+        }
+        if (bu) {
+          invokeArrayFns(bu);
         }
         const subTree = render.call(instance.proxy);
         patch(instance.subTree, subTree, container, anchor);
         instance.subTree = subTree;
+        if (u) {
+          invokeArrayFns(u);
+        }
       }
     };
     const effect = new ReactiveEffect(componentUpdate, () => {

@@ -2,6 +2,16 @@ import { proxyRefs, reactive } from "@vue/reactivity";
 import { hasOwn, isFunction, isObject, ShapeFlags } from "@vue/shared";
 import { initProps } from "./componentProps";
 
+export let currentInstance = null;
+
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+export function setCurrentInsatnce(instance) {
+  currentInstance = instance;
+}
+
 export function createComponentInstance(vnode) {
   // 组件实例
   const instance = {
@@ -90,7 +100,11 @@ export function setupComponent(instance) {
       attrs: instance.attrs,
       slots: instance.slots,
     };
+
+    setCurrentInsatnce(instance);
     const setupResult = setup(instance.props, setupContext);
+    setCurrentInsatnce(null);
+
     if (isFunction(setupResult)) {
       instance.render = setupResult;
     } else if (isObject(setupResult)) {
