@@ -12,3 +12,4 @@ function render(vnode, aontainer) {
 
 export * from "@vue/runtime-core";
 export { render };
+export * from "@vue/reactivity";
