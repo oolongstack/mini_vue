@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../dist/runtime-dom.global.js"></script>
+    <script>
+      const {
+        render,
+        h,
+        ref,
+        reactive,
+        Fragment,
+        Text,
+        onBeforeMount,
+        onMounted,
+        onBeforeUpdate,
+        onUpdated,
+        toRefs,
+      } = VueRuntimeDOM;
+      const app = document.getElementById("app");
+
+      const useCounter = () => {
+        const count = ref(0);
+        const increment = () => {
+          count.value++;
+        };
+        onBeforeMount(() => {
+          console.log("onBeforeMount");
+        });
+        onMounted(() => {
+          console.log("onMounted");
+        });
+        onBeforeUpdate(() => {
+          console.log("onBeforeUpdate");
+        });
+        onUpdated(() => {
+          console.log("onUpdated");
+        });
+        return {
+          count,
+          increment,
+        };
+      };
+      const VueComponent = {
+        setup() {
+          const counter = useCounter();
+          return {
+            ...toRefs(counter),
+          };
+        },
+        render() {
+          return h(Fragment, null, [
+            h("div", this.count),
+            h("button", { onClick: this.increment }, "increment"),
+          ]);
+        },
+      };
+      render(h(VueComponent), app);
+    </script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 import { proxyRefs, reactive } from "@vue/reactivity";
-import { hasOwn, isFunction, isObject } from "@vue/shared";
+import { hasOwn, isFunction, isObject, ShapeFlags } from "@vue/shared";
 import { initProps } from "./componentProps";
 
 export function createComponentInstance(vnode) {
@@ -15,11 +15,13 @@ export function createComponentInstance(vnode) {
     attrs: {},
     proxy: null, // 渲染上下文，代理props，state等数据
     setupState: {}, // setup返回的数据
+    slots: {}, // 插槽
   };
   return instance;
 }
 const publicPropertyMap = {
   $attrs: (i) => i.attrs,
+  $slots: (i) => i.slots,
 };
 
 // 组件render函数中取值设置值的时候，会走这个方法
@@ -59,9 +61,15 @@ const publicInstanceProxy = {
     }
   },
 };
+function initSlots(instance, children) {
+  if (instance.vnode.shapeFlag & ShapeFlags.SLOTS_CHILDREN) {
+    instance.slots = children;
+  }
+}
 export function setupComponent(instance) {
-  const { type, props } = instance.vnode;
+  const { type, props, children } = instance.vnode;
   initProps(instance, props);
+  initSlots(instance, children);
   instance.proxy = new Proxy(instance, publicInstanceProxy);
   // 用户写的data
   const { setup, data, render } = type;
@@ -79,6 +87,8 @@ export function setupComponent(instance) {
         const handler = instance.vnode.props[eventName];
         handler && handler(...args);
       },
+      attrs: instance.attrs,
+      slots: instance.slots,
     };
     const setupResult = setup(instance.props, setupContext);
     if (isFunction(setupResult)) {

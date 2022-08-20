@@ -35,6 +35,8 @@ export function createVnode(type, props, children = null) {
     let type = 0;
     if (isArray(children)) {
       type = ShapeFlags.ARRAY_CHILDREN;
+    } else if (isObject(children)) {
+      type = ShapeFlags.SLOTS_CHILDREN;
     } else {
       // children不是数组
       children = String(children);
