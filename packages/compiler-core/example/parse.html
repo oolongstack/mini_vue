@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="../dist/compiler-core.global.js"></script>
+    <script>
+      const { compile } = VueCompilerCore;
+      // const template = `<div a=1 b=2>哈哈哈</div>`;
+      // const template = `哈
+      // 哈
+      // 哈 <div></div> {{aaa}}`;
+
+      // const template = `{{ aaaaa }}`;
+      const template = `<div>
+                          {{ aaa }} 222 
+                          <span>nnn</span>
+                        </div>`;
+
+      const ast = compile(template);
+
+      console.log(ast);
+    </script>
+  </body>
+</html>

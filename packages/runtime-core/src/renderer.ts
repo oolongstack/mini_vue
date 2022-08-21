@@ -67,7 +67,18 @@ export function createRenderer(renderOptions) {
 
     patchProps(oldProps, newProps, el);
 
-    patchChildren(n1, n2, el);
+    if (n2.dynamicChildren) {
+      // 靶向更新
+      patchBlockChildren(n1, n2);
+    } else {
+      // 全量更新
+      patchChildren(n1, n2, el);
+    }
+  };
+  const patchBlockChildren = (n1, n2) => {
+    for (let i = 0; i < n2.dynamicChildren.length; i++) {
+      patchElement(n1.dynamicChildren[i], n2.dynamicChildren[i]);
+    }
   };
   const patchProps = (oldProps, newProps, el) => {
     for (const key in newProps) {
@@ -284,7 +295,7 @@ export function createRenderer(renderOptions) {
         if (bm) {
           invokeArrayFns(bm);
         }
-        const subTree = render.call(instance.proxy);
+        const subTree = render.call(instance.proxy, instance.proxy);
         patch(null, subTree, container, anchor);
         instance.subTree = subTree;
         instance.isMounted = true;
@@ -299,7 +310,7 @@ export function createRenderer(renderOptions) {
         if (bu) {
           invokeArrayFns(bu);
         }
-        const subTree = render.call(instance.proxy);
+        const subTree = render.call(instance.proxy, instance.proxy);
         patch(instance.subTree, subTree, container, anchor);
         instance.subTree = subTree;
         if (u) {

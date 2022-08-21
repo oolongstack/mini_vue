@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="../dist/runtime-dom.global.js"></script>
+    <script>
+      const {
+        render,
+        h,
+        ref,
+        reactive,
+        Fragment,
+        Text,
+        createVnode: _craeteElementVnode,
+        toDisplayString: _toDisplayString,
+        openBlock: _openBlock,
+        createElementBlock: _createElementBlock,
+      } = VueRuntimeDOM;
+      const app = document.getElementById("app");
+      const VueComponent = {
+        setup() {
+          const state = reactive({ name: "蔡杰鲁" });
+
+          setTimeout(() => {
+            state.name = "cjl";
+          }, 2000);
+          return {
+            state,
+          };
+        },
+        render(_ctx) {
+          const vnode =
+            (_openBlock(),
+            _createElementBlock("div", null, [
+              _craeteElementVnode("h1", null, "哈哈哈"),
+              _craeteElementVnode(
+                "span",
+                null,
+                _toDisplayString(_ctx.state.name),
+                1 /* TEXT */
+              ),
+            ]));
+          console.log(vnode, "靶向更新");
+          return vnode;
+        },
+      };
+      render(h(VueComponent), app);
+    </script>
+  </body>
+</html>
