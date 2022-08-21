@@ -16,10 +16,7 @@
       // 哈 <div></div> {{aaa}}`;
 
       // const template = `{{ aaaaa }}`;
-      const template = `<div>
-                          {{ aaa }} 222 
-                          <span>nnn</span>
-                        </div>`;
+      const template = `<div isShow="showFlag" a="20">{{ aaa }}222<span>nnn</span></div>`;
 
       const ast = compile(template);
 

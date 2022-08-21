@@ -78,6 +78,7 @@ var VueCompilerCore = (() => {
     const tag = match[1];
     advanceBy(context, match[0].length);
     advanceBySpaces(context);
+    const props = parseAttributes(context);
     const isSelfClosing = context.source.startsWith("/>");
     advanceBy(context, isSelfClosing ? 2 : 1);
     return {
@@ -85,6 +86,50 @@ var VueCompilerCore = (() => {
       tag,
       isSelfClosing,
       children: [],
+      props,
+      loc: getSelection(context, start)
+    };
+  }
+  function parseAttributes(context) {
+    const props = [];
+    while (context.source.length > 0 && !context.source.startsWith(">")) {
+      const prop = parseAttribute(context);
+      props.push(prop);
+      advanceBySpaces(context);
+    }
+    return props;
+  }
+  function parseAttribute(context) {
+    const start = getCursor(context);
+    const match = /^[^\t\r\n\f />][^\t\r\n\f />=]*/.exec(context.source);
+    let name = match[0];
+    advanceBy(context, name.length);
+    advanceBySpaces(context);
+    advanceBy(context, 1);
+    const value = parseAttributeValue(context);
+    return {
+      type: 6 /* ATTRIBUTE */,
+      name,
+      value: {
+        type: 2 /* TEXT */,
+        content: value.content,
+        loc: value.loc
+      },
+      loc: getSelection(context, start)
+    };
+  }
+  function parseAttributeValue(context) {
+    const start = getCursor(context);
+    const quote = context.source[0];
+    let content;
+    if (quote == '"' || quote == "'") {
+      advanceBy(context, 1);
+      const endIndex = context.source.indexOf(quote);
+      content = parseTextData(context, endIndex);
+      advanceBy(context, 1);
+    }
+    return {
+      content,
       loc: getSelection(context, start)
     };
   }

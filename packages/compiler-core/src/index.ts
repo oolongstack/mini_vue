@@ -71,6 +71,8 @@ function parseTag(context) {
   advanceBy(context, match[0].length); // 删掉标签 <div
   advanceBySpaces(context); // 删除空格
 
+  //  解析属性
+  const props = parseAttributes(context);
   // <div>   <div/>
   // 判断是否为自闭和标签
   const isSelfClosing = context.source.startsWith("/>");
@@ -82,6 +84,59 @@ function parseTag(context) {
     tag,
     isSelfClosing,
     children: [],
+    props,
+    loc: getSelection(context, start),
+  };
+}
+function parseAttributes(context) {
+  const props = [];
+  while (context.source.length > 0 && !context.source.startsWith(">")) {
+    const prop = parseAttribute(context);
+    props.push(prop);
+    advanceBySpaces(context); // 删除空格
+  }
+  return props;
+}
+function parseAttribute(context) {
+  const start = getCursor(context);
+
+  // 解析属性名字
+  const match = /^[^\t\r\n\f />][^\t\r\n\f />=]*/.exec(context.source);
+
+  let name = match[0];
+
+  advanceBy(context, name.length);
+
+  advanceBySpaces(context); // a ="1" 删掉空格
+
+  advanceBy(context, 1); // 删掉 =
+
+  const value = parseAttributeValue(context);
+
+  return {
+    type: NodeTypes.ATTRIBUTE,
+    name,
+    value: {
+      type: NodeTypes.TEXT,
+      content: value.content,
+      loc: value.loc,
+    },
+    loc: getSelection(context, start),
+  };
+}
+function parseAttributeValue(context) {
+  const start = getCursor(context);
+  // '' ""
+  const quote = context.source[0];
+  let content;
+  if (quote == '"' || quote == "'") {
+    advanceBy(context, 1);
+    const endIndex = context.source.indexOf(quote);
+    content = parseTextData(context, endIndex);
+    advanceBy(context, 1);
+  }
+  return {
+    content,
     loc: getSelection(context, start),
   };
 }
