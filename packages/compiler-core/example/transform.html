@@ -8,19 +8,12 @@
   </head>
   <body>
     <script src="../dist/compiler-core.global.js"></script>
+    <div></div>
     <script>
       const { compile } = VueCompilerCore;
-      // const template = `<div a=1 b=2>哈哈哈</div>`;
-      // const template = `哈
-      // 哈
-      // 哈 <div></div> {{aaa}}`;
-
-      // const template = `{{ aaaaa }}`;
-      const template = `<div></div>   哈哈哈`;
-
+      const template = `<div>{{aaa}}哈哈哈  <span>嘿嘿嘿{{bbb}}</span></div>`;
       const ast = compile(template);
-
-      console.log(ast);
+      // console.log(ast);
     </script>
   </body>
 </html>
