@@ -42,10 +42,15 @@ var VueReactivity = (() => {
   // packages/reactivity/src/effectScope.ts
   var activeEffectScope = null;
   var EffectScope = class {
-    constructor() {
+    constructor(detached) {
+      this.detached = detached;
       this.active = true;
       this.parent = null;
       this.effects = [];
+      this.scopes = [];
+      if (!this.detached && activeEffectScope) {
+        activeEffectScope.scopes.push(this);
+      }
     }
     run(fn) {
       if (this.active) {
@@ -64,6 +69,9 @@ var VueReactivity = (() => {
         for (let i = 0; i < this.effects.length; i++) {
           this.effects[i].stop();
         }
+        for (let i = 0; i < this.scopes.length; i++) {
+          this.scopes[i].stop();
+        }
         this.active = false;
       }
     }
@@ -73,8 +81,8 @@ var VueReactivity = (() => {
       activeEffectScope.effects.push(effect2);
     }
   }
-  function effectScope() {
-    return new EffectScope();
+  function effectScope(detached = false) {
+    return new EffectScope(detached);
   }
 
   // packages/reactivity/src/effect.ts

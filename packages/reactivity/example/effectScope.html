@@ -14,17 +14,31 @@
       const { reactive, effect, effectScope } = VueReactivity;
       const state = reactive({ age: 22 });
       const scope = effectScope();
+
       scope.run(() => {
         effect(() => {
-          console.log(state.age);
+          console.log(state.age, "外");
         });
         effect(() => {
-          console.log(state.age);
+          console.log(state.age, "外");
         });
+
+        const innerScope = effectScope();
+
+        innerScope.run(() => {
+          effect(() => {
+            console.log(state.age, "内");
+          });
+        });
+        console.log(innerScope);
       });
-      // setTimeout(() => {
-      //   scope.stop(); // 能让收集的两个effect都停止
-      // }, 2000);
+
+      console.log(scope);
+
+      setTimeout(() => {
+        scope.stop(); // 能让收集的两个effect都停止
+      }, 2500);
+
       setInterval(() => {
         state.age++;
       }, 1000);
