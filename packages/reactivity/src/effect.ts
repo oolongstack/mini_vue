@@ -1,3 +1,4 @@
+import { recordEffectScope } from "./effectScope";
 // 目前活跃的 effect
 export let activeEffect: any = undefined;
 function cleanupEffect(effect: ReactiveEffect) {
@@ -11,7 +12,9 @@ export class ReactiveEffect {
   public active = true; // 该effect的状态，是否活跃
   public parent = null;
   public deps = []; // 该effect依赖的值的集合 用于清理effect
-  constructor(public fn: () => any, public scheduler?) {}
+  constructor(public fn: () => any, public scheduler?) {
+    recordEffectScope(this); // 记录当前effect 用于effectScope
+  }
   run() {
     try {
       // 非激活状态无需进行依赖收集，只需执行fn即可

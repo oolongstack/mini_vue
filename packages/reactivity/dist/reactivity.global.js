@@ -20,8 +20,10 @@ var VueReactivity = (() => {
   // packages/reactivity/src/index.ts
   var src_exports = {};
   __export(src_exports, {
+    ReactiveEffect: () => ReactiveEffect,
     computed: () => computed,
     effect: () => effect,
+    effectScope: () => effectScope,
     proxyRefs: () => proxyRefs,
     reactive: () => reactive,
     ref: () => ref,
@@ -36,6 +38,44 @@ var VueReactivity = (() => {
   };
   var isArray = Array.isArray;
   var isFunction = (value) => typeof value === "function";
+
+  // packages/reactivity/src/effectScope.ts
+  var activeEffectScope = null;
+  var EffectScope = class {
+    constructor() {
+      this.active = true;
+      this.parent = null;
+      this.effects = [];
+    }
+    run(fn) {
+      if (this.active) {
+        try {
+          this.parent = activeEffectScope;
+          activeEffectScope = this;
+          return fn();
+        } finally {
+          activeEffectScope = this.parent;
+          this.parent = null;
+        }
+      }
+    }
+    stop() {
+      if (this.active) {
+        for (let i = 0; i < this.effects.length; i++) {
+          this.effects[i].stop();
+        }
+        this.active = false;
+      }
+    }
+  };
+  function recordEffectScope(effect2) {
+    if (activeEffectScope && activeEffectScope.active) {
+      activeEffectScope.effects.push(effect2);
+    }
+  }
+  function effectScope() {
+    return new EffectScope();
+  }
 
   // packages/reactivity/src/effect.ts
   var activeEffect = void 0;
@@ -53,6 +93,7 @@ var VueReactivity = (() => {
       this.active = true;
       this.parent = null;
       this.deps = [];
+      recordEffectScope(this);
     }
     run() {
       try {
